@@ -3,15 +3,15 @@ var startYear = 2012;
 var endYear = 2017;
 var fileName = 'rs_to_points';
 
-// Excel formatting command: =CONCATENATE("ee.Feature(ee.Geometry.Point(",B1,",",C1,")).set('1_id',",A1,"),")
+// Excel formatting command: =CONCATENATE("ee.Feature(ee.Geometry.Point(",B1,",",C1,")).set('1_id','",A1,"'),")
 // A - ID field; B - longitude; C - latitude
 
 // Comment
 var features = [
-  ee.Feature(ee.Geometry.Point(33.10205078125,-12.73270832133583)).set('1_id',1),
-  ee.Feature(ee.Geometry.Point(35.10205078125,-11.73270832133583)).set('1_id',2),
-  ee.Feature(ee.Geometry.Point(37.10205078125,-10.73270832133583)).set('1_id',3),
-  ee.Feature(ee.Geometry.Point(39.10205078125,-10.26729167866417)).set('1_id',4)
+  ee.Feature(ee.Geometry.Point(33.10205078125,-12.73270832133583)).set('1_id','1401'),
+  ee.Feature(ee.Geometry.Point(35.10205078125,-11.73270832133583)).set('1_id','1402'),
+  ee.Feature(ee.Geometry.Point(37.10205078125,-10.73270832133583)).set('1_id','1403'),
+  ee.Feature(ee.Geometry.Point(39.10205078125,-10.26729167866417)).set('1_id','1404')
 ];
 
 // Comment
@@ -25,17 +25,17 @@ var yearName = startYear+'_'+endYear;
 // Comment
 var elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation')
                   .clip(region)
-                  .rename('band').set('extract','elevation_'+yearName);
+                  .rename('band').set('extract','elevation');
 
 // Comment
 var slope = ee.Terrain.slope(elevation)
-                      .rename('band').set('extract','slope_'+yearName);
+                      .rename('band').set('extract','slope');
 
 // Comment
 var ndviMean = ee.ImageCollection('MODIS/006/MOD13Q1').select('NDVI')
                       .filter(ee.Filter.calendarRange(startYear,endYear,'year'))
                       .mean().clip(region).multiply(0.0001) // Comment
-                      .rename('band').set('extract', 'ndvi_'+yearName);
+                      .rename('band').set('extract', 'ndvi_mean');
 
 // Comment
 var precipitation = ee.ImageCollection('UCSB-CHG/CHIRPS/PENTAD').select('precipitation')
@@ -53,7 +53,7 @@ var annualPrecipitation = ee.ImageCollection.fromImages(
 
 // Comment
 var annualPrecipMean = annualPrecipitation.mean()
-                                          .rename('band').set('extract','precipMean_'+yearName);
+                                          .rename('band').set('extract','precip_mean');
 
 // Comment
 Map.addLayer(annualPrecipMean.rename('precipitation'),{},'precipitation',false);
@@ -119,3 +119,5 @@ var histDisplay = {
   series: {0: {color: 'green'}}
 };
 print(ui.Chart.image.histogram(ndviMean.rename('NDVI'), region, 5000).setOptions(histDisplay));
+
+print(extraction);
