@@ -1,12 +1,13 @@
-// Comment
+// Input variables
 var startYear = 2012;
 var endYear = 2017;
 var fileName = 'rs_to_points';
 
+// Use excel to build a set of coordinates that Earth Engine can understand
 // Excel formatting command: =CONCATENATE("ee.Feature(ee.Geometry.Point(",B1,",",C1,")).set('1_id','",A1,"'),")
-// A - ID field; B - longitude; C - latitude
+// Structure columns in this order: A - ID field; B - longitude; C - latitude
 
-// Comment
+// Replace these coordinates with the ones you generated
 var features = [
   ee.Feature(ee.Geometry.Point(33.10205078125,-12.73270832133583)).set('1_id','1401'),
   ee.Feature(ee.Geometry.Point(35.10205078125,-11.73270832133583)).set('1_id','1402'),
@@ -14,48 +15,49 @@ var features = [
   ee.Feature(ee.Geometry.Point(39.10205078125,-10.26729167866417)).set('1_id','1404')
 ];
 
-// Comment
+// Converts a list of points to a feature collection
 var sites = ee.FeatureCollection(features);
+//  Creates a bounding box around your sites
 var region = sites.geometry().bounds().buffer(10000);
 
-// Comment
+// Creates a list of years from the input parameters
 var years = ee.List.sequence(startYear, endYear);
+// Naming label
 var yearName = startYear+'_'+endYear;
 
-// Comment
+// Load the elevation imagery, clip to your area, rename properties for table export
 var elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation')
                   .clip(region)
                   .rename('band').set('extract','elevation');
 
-// Comment
+// Calculate slope and rename properties for table export
 var slope = ee.Terrain.slope(elevation)
                       .rename('band').set('extract','slope');
 
-// Comment
+// Load NDVI data, calculate the average across all years, and rename properties for table export
 var ndviMean = ee.ImageCollection('MODIS/006/MOD13Q1').select('NDVI')
                       .filter(ee.Filter.calendarRange(startYear,endYear,'year'))
-                      .mean().clip(region).multiply(0.0001) // Comment
+                      .mean().clip(region).multiply(0.0001) // Scale factor to convert from integer to float
                       .rename('band').set('extract', 'ndvi_mean');
 
-// Comment
+// Load precipitation data
 var precipitation = ee.ImageCollection('UCSB-CHG/CHIRPS/PENTAD').select('precipitation')
                       .filter(ee.Filter.calendarRange(startYear,endYear,'year'));
 
-// Comment
+// Iterate over the list of years to return total annual rainfall
 var annualPrecipitation = ee.ImageCollection.fromImages(
   years.map(function (y) {
     return precipitation.filter(ee.Filter.calendarRange(y,y,'year'))
                         .sum().clip(region)
-                        .set('year',y);
-                        
+                        .set('year',y);               
   })
 );
 
-// Comment
+// Calculate the average annual rainfall amount and rename properties for table export
 var annualPrecipMean = annualPrecipitation.mean()
                                           .rename('band').set('extract','precip_mean');
 
-// Comment
+// Add layers to display
 Map.addLayer(annualPrecipMean.rename('precipitation'),{},'precipitation',false);
 Map.addLayer(elevation.rename('elevation'),{},'elevation',false);
 Map.addLayer(slope.rename('slope'),{},'slope',false);
@@ -64,22 +66,25 @@ Map.addLayer(sites,{},'points');
 Map.addLayer(ee.Image().byte().paint({featureCollection: region, color: 'black', width: 2}),{},'bounds');
 Map.centerObject(region);
 
-// Comment
+// Create an image collection from the images desired for export
 var imageToCollection = ee.ImageCollection.fromImages([annualPrecipMean,elevation,slope,ndviMean]);
 
-// Temporary solution to export zero values as a float approximating zero so that they don't appear as no data
+// *** Temporary solution to export zero values as a float approximating zero so that they don't appear as no data
 var exportCollection = imageToCollection.map(function(img){
                          return img.where(img.updateMask(img.eq(0)).add(1),1e-10);
                        });
 
-// Comment
+// Function to attach raster data to each feature
 var featureCollection = sites; 
 var extractToPoints = function(feature) {
   var geom = feature.geometry();
   var addField = function(image, f) {
     var newFeature = ee.Feature(f);
+    // Get the label name
     var getName = image.get('extract');
+    // Get the raster value at the point
     var setValue = image.reduceRegion(ee.Reducer.first(), geom, 5).get('band');
+    // Add the value to the feature properties
     return ee.Feature(ee.Algorithms.If(setValue,
                                        newFeature.set(getName, ee.String(setValue)),
                                        newFeature.set(getName, ee.String('No data'))));
@@ -88,17 +93,17 @@ var extractToPoints = function(feature) {
   return newFeature;
 };
 
-// Comment
+// Run the iteration function for each feature in the feature collection
 var extraction = featureCollection.map(extractToPoints);
 
-// Comment
+// Export CSV to Google Drive -- check task tab to download CSV
 Export.table.toDrive({
   collection: extraction,
   folder: 'GEE_export',
   description: fileName+'_'+yearName
 });
 
-// Comment
+// Create time-series chart display and print to console
 var tsDisplay = {
   title: 'Annual CHIRPS Precipitation',
   fontSize: 12,
@@ -110,7 +115,7 @@ var tsDisplay = {
 };
 print(ui.Chart.image.series(annualPrecipitation, region, ee.Reducer.mean(), 5000, 'year').setOptions(tsDisplay));
 
-// Comment
+// Create histogram display and print to console
 var histDisplay = {
   title: 'Mean MODIS NDVI',
   fontSize: 12,
@@ -120,4 +125,5 @@ var histDisplay = {
 };
 print(ui.Chart.image.histogram(ndviMean.rename('NDVI'), region, 5000).setOptions(histDisplay));
 
+// Print data table to console
 print(extraction);
