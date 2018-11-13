@@ -11,8 +11,7 @@ var features = [
   ee.Feature(ee.Geometry.Point(35.10205078125,-1.73270832133583)),
   ee.Feature(ee.Geometry.Point(37.10205078125,-0.73270832133583)),
   ee.Feature(ee.Geometry.Point(39.10205078125,0.26729167866417)),
-  ee.Feature(ee.Geometry.Point(41.10205078125,1.26729167866417)),
-  ee.Feature(ee.Geometry.Point(46.10205078125,1.26729167866417)),
+  ee.Feature(ee.Geometry.Point(41.10205078125,1.26729167866417))
 ];
 
 // Comment
