@@ -67,7 +67,7 @@ Map.centerObject(region);
 // Comment
 var imageToCollection = ee.ImageCollection.fromImages([annualPrecipMean,elevation,slope,ndviMean]);
 
-// Temporary solution to export zero values as a float approximating zero so that it doesn't appear as no data
+// Temporary solution to export zero values as a float approximating zero so that they don't appear as no data
 var exportCollection = imageToCollection.map(function(img){
                          return img.where(img.updateMask(img.eq(0)).add(1),1e-10);
                        });
