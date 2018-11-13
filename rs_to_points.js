@@ -3,15 +3,15 @@ var startYear = 2012;
 var endYear = 2017;
 var fileName = 'rs_to_points';
 
-// Excel formatting command: =CONCATENATE("ee.Feature(ee.Geometry.Point(",A1,",",B1,")),")
+// Excel formatting command: =CONCATENATE("ee.Feature(ee.Geometry.Point(",B1,",",C1,")).set('1_id',",A1,"),")
+// A - ID field; B - longitude; C - latitude
 
 // Comment
 var features = [
-  ee.Feature(ee.Geometry.Point(33.10205078125,-2.73270832133583)),
-  ee.Feature(ee.Geometry.Point(35.10205078125,-1.73270832133583)),
-  ee.Feature(ee.Geometry.Point(37.10205078125,-0.73270832133583)),
-  ee.Feature(ee.Geometry.Point(39.10205078125,0.26729167866417)),
-  ee.Feature(ee.Geometry.Point(41.10205078125,1.26729167866417))
+  ee.Feature(ee.Geometry.Point(33.10205078125,-12.73270832133583)).set('1_id',1),
+  ee.Feature(ee.Geometry.Point(35.10205078125,-11.73270832133583)).set('1_id',2),
+  ee.Feature(ee.Geometry.Point(37.10205078125,-10.73270832133583)).set('1_id',3),
+  ee.Feature(ee.Geometry.Point(39.10205078125,-10.26729167866417)).set('1_id',4)
 ];
 
 // Comment
