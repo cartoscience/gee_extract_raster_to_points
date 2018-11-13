@@ -25,7 +25,7 @@ var yearName = startYear+'_'+endYear;
 
 // Comment
 var elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation')
-                  .clip(region).multiply(0)
+                  .clip(region)
                   .rename('band').set('extract','elevation_'+yearName);
 
 // Comment
