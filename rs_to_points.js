@@ -75,6 +75,7 @@ var exportCollection = imageToCollection.map(function(img){
                        });
 
 // Function to attach raster data to each feature
+// Credit to https://github.com/fitoprincipe for base extraction code
 var featureCollection = sites; 
 var extractToPoints = function(feature) {
   var geom = feature.geometry();
